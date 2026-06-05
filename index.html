@@ -1,792 +1,459 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>VorvovX Client — Лучший клиент для Minecraft</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/svg+xml" href="icon.ico">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        inter: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    screens: {
-                        'xs': '475px',
-                        'sm': '640px',
-                        'md': '768px',
-                        'lg': '1024px',
-                        'xl': '1280px',
-                        '2xl': '1536px',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background: #000; color: #fff; overflow-x: hidden; }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-
-        /* Glowing text (только для подзаголовков) */
-        .glow-text {
-            text-shadow: 0 0 20px rgba(255,255,255,0.3), 0 0 60px rgba(255,255,255,0.1);
-        }
-
-        /* Animated gradient border */
-        .gradient-border {
-            position: relative;
-            background: #0a0a0a;
-            border-radius: 16px;
-            overflow: hidden;
-        }
-        .gradient-border::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 16px;
-            padding: 1px;
-            background: linear-gradient(135deg, #fff, #333, #fff, #333);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0.3;
-        }
-
-        /* Noise overlay */
-        .noise-overlay::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-            pointer-events: none;
-            opacity: 0.5;
-        }
-
-        /* Fade in animation */
-        .fade-up {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
-        }
-        .fade-up.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Stagger children */
-        .stagger-children .fade-up:nth-child(1) { transition-delay: 0.1s; }
-        .stagger-children .fade-up:nth-child(2) { transition-delay: 0.2s; }
-        .stagger-children .fade-up:nth-child(3) { transition-delay: 0.3s; }
-        .stagger-children .fade-up:nth-child(4) { transition-delay: 0.4s; }
-
-        /* Floating animation */
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-        }
-        .float-anim { animation: float 6s ease-in-out infinite; }
-
-        /* Grid lines background */
-        .grid-bg {
-            background-image:
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-        }
-        @media (min-width: 768px) {
-            .grid-bg { background-size: 60px 60px; }
-        }
-
-        /* Nav glass effect */
-        .nav-glass {
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* Advantage card hover */
-        .adv-card {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-        .adv-card:hover {
-            border-color: rgba(255,255,255,0.15);
-            transform: translateY(-4px);
-            box-shadow: 0 20px 60px rgba(255,255,255,0.03);
-        }
-        .adv-card:hover .adv-icon {
-            transform: scale(1.1);
-        }
-        .adv-icon {
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Button shine effect */
-        .btn-shine {
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-shine::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                to right,
-                transparent 0%,
-                rgba(255,255,255,0.1) 50%,
-                transparent 100%
-            );
-            transform: rotate(45deg) translateX(-100%);
-            transition: transform 0.6s;
-        }
-        .btn-shine:hover::after {
-            transform: rotate(45deg) translateX(100%);
-        }
-
-        /* Video container */
-        .video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-        .video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Mobile menu */
-        .mobile-menu {
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-        }
-        .mobile-menu.open {
-            transform: translateX(0);
-        }
-
-        /* Divider */
-        .section-divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-        }
-
-        /* Dot pattern */
-        .dot-pattern {
-            background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-
-        /* Custom logo image styling - transparent background */
-        .logo-img {
-            width: 32px;
-            height: 32px;
-            object-fit: contain;
-            border-radius: 8px;
-            background: transparent;
-        }
-        @media (min-width: 640px) {
-            .logo-img { width: 36px; height: 36px; }
-        }
-        .footer-logo-img {
-            width: 24px;
-            height: 24px;
-            object-fit: contain;
-            border-radius: 6px;
-            background: transparent;
-        }
-        @media (min-width: 640px) {
-            .footer-logo-img { width: 28px; height: 28px; }
-        }
-        
-        /* hero icon container */
-        .hero-icon-container {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            overflow: visible !important;
-        }
-        .hero-icon-container img {
-            filter: drop-shadow(0 0 20px rgba(255,255,255,0.15));
-        }
-        /* badge style */
-        .version-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 40px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.03);
-            font-size: 11px;
-            letter-spacing: 0.3px;
-        }
-        @media (min-width: 640px) {
-            .version-badge { font-size: 12px; padding: 4px 14px; }
-        }
-        .version-badge .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: rgba(255,255,255,0.7);
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.4; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-        
-        /* hero left col */
-        .hero-left-col {
-            width: 100%;
-            max-width: 100%;
-        }
-        @media (min-width: 1024px) {
-            .hero-left-col { max-width: 540px; }
-        }
-        @media (min-width: 1280px) {
-            .hero-left-col { max-width: 560px; }
-        }
-        
-        /* hero section */
-        .hero-section {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            padding-top: 70px;
-            padding-bottom: 70px;
-        }
-        @media (min-width: 768px) {
-            .hero-section { padding-top: 80px; padding-bottom: 80px; }
-        }
-        
-        /* scroll indicator */
-        .scroll-indicator {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            z-index: 20;
-            transition: opacity 0.3s ease;
-            opacity: 0.6;
-        }
-        .scroll-indicator:hover {
-            opacity: 1;
-        }
-        .scroll-arrow-svg {
-            width: 22px;
-            height: 22px;
-            stroke: rgba(255,255,255,0.7);
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-            animation: bounceArrow 2s ease-in-out infinite;
-        }
-        @keyframes bounceArrow {
-            0%, 100% { transform: translateY(0); opacity: 0.5; }
-            50% { transform: translateY(5px); opacity: 1; }
-        }
-        .scroll-text {
-            font-size: 8px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.45);
-            font-weight: 400;
-        }
-        @media (min-width: 640px) {
-            .scroll-text { font-size: 9px; letter-spacing: 2.5px; }
-            .scroll-arrow-svg { width: 24px; height: 24px; }
-            .scroll-indicator { bottom: 25px; gap: 7px; }
-        }
-        @media (min-width: 1024px) {
-            .scroll-text { font-size: 10px; letter-spacing: 3px; }
-        }
-
-        /* YouTube icon */
-        .youtube-icon {
-            width: 22px;
-            height: 22px;
-            transition: all 0.3s ease;
-        }
-        @media (min-width: 640px) {
-            .youtube-icon { width: 24px; height: 24px; }
-        }
-        .group:hover .youtube-icon {
-            filter: drop-shadow(0 0 8px rgba(255,0,0,0.5));
-        }
-        
-        /* responsive typography */
-        .hero-title {
-            font-size: 2.5rem;
-            line-height: 1.15;
-            font-weight: 900;
-            letter-spacing: -0.025em;
-            color: white;
-        }
-        @media (min-width: 640px) {
-            .hero-title { font-size: 3.5rem; }
-        }
-        @media (min-width: 768px) {
-            .hero-title { font-size: 4rem; }
-        }
-        @media (min-width: 1024px) {
-            .hero-title { font-size: 4.5rem; }
-        }
-        @media (min-width: 1280px) {
-            .hero-title { font-size: 5rem; }
-        }
-        
-        /* Заголовок "Почему VorvovX Client?" - увеличенный размер, как в оригинале но больше */
-        .section-title {
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-        }
-        @media (min-width: 640px) {
-            .section-title { font-size: 2.8rem; }
-        }
-        @media (min-width: 768px) {
-            .section-title { font-size: 3.2rem; }
-        }
-        @media (min-width: 1024px) {
-            .section-title { font-size: 3.8rem; }
-        }
-        @media (min-width: 1280px) {
-            .section-title { font-size: 4.2rem; }
-        }
-        
-        /* кнопки на мобильных */
-        .btn-responsive {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.875rem;
-        }
-        @media (min-width: 640px) {
-            .btn-responsive { padding: 0.875rem 1.75rem; font-size: 0.9rem; }
-        }
-        
-        /* отступы секций */
-        .section-padding {
-            padding-top: 3rem;
-            padding-bottom: 3rem;
-        }
-        @media (min-width: 768px) {
-            .section-padding { padding-top: 5rem; padding-bottom: 5rem; }
-        }
-
-        /* VorvovX Client title - original style (only bold, no extra effects) */
-        .dvorvovx client-original {
-            font-weight: 900;
-            letter-spacing: -0.025em;
-            color: white;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VorvovX Client — Лучший клиент для Minecraft</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" type="image/svg+xml" href="icon.ico">
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{fontFamily:{inter:['Inter','sans-serif'],mono:['JetBrains Mono','monospace']},screens:{'xs':'475px','sm':'640px','md':'768px','lg':'1024px','xl':'1280px','2xl':'1536px'}}}}</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}body{font-family:'Inter',sans-serif;background:#000;color:#fff;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#000}::-webkit-scrollbar-thumb{background:#333;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#555}
+.glow-text{text-shadow:0 0 20px rgba(255,255,255,0.3),0 0 60px rgba(255,255,255,0.1)}
+.gradient-border{position:relative;background:#0a0a0a;border-radius:16px;overflow:hidden}.gradient-border::before{content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,#fff,#333,#fff,#333);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0.3}
+.noise-overlay::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;opacity:0.5}
+.fade-up{opacity:0;transform:translateY(40px);transition:opacity 0.8s ease,transform 0.8s ease}.fade-up.visible{opacity:1;transform:translateY(0)}
+.stagger-children .fade-up:nth-child(1){transition-delay:.1s}.stagger-children .fade-up:nth-child(2){transition-delay:.2s}.stagger-children .fade-up:nth-child(3){transition-delay:.3s}.stagger-children .fade-up:nth-child(4){transition-delay:.4s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}.float-anim{animation:float 6s ease-in-out infinite}
+.grid-bg{background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:40px 40px}
+@media(min-width:768px){.grid-bg{background-size:60px 60px}}
+.nav-glass{background:rgba(0,0,0,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.adv-card{transition:all 0.4s cubic-bezier(0.4,0,0.2,1);border:1px solid rgba(255,255,255,0.06)}.adv-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-4px);box-shadow:0 20px 60px rgba(255,255,255,0.03)}.adv-card:hover .adv-icon{transform:scale(1.1)}.adv-icon{transition:transform 0.4s cubic-bezier(0.4,0,0.2,1)}
+.btn-shine{position:relative;overflow:hidden}.btn-shine::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(to right,transparent 0%,rgba(255,255,255,0.1) 50%,transparent 100%);transform:rotate(45deg) translateX(-100%);transition:transform 0.6s}.btn-shine:hover::after{transform:rotate(45deg) translateX(100%)}
+.video-wrapper{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid rgba(255,255,255,0.08)}.video-wrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%}
+.mobile-menu{transform:translateX(100%);transition:transform 0.3s ease}.mobile-menu.open{transform:translateX(0)}
+.section-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)}
+.dot-pattern{background-image:radial-gradient(rgba(255,255,255,0.07) 1px,transparent 1px);background-size:20px 20px}
+.logo-img{width:32px;height:32px;object-fit:contain;border-radius:8px;background:transparent}
+@media(min-width:640px){.logo-img{width:36px;height:36px}}
+.footer-logo-img{width:24px;height:24px;object-fit:contain;border-radius:6px;background:transparent}
+.version-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:40px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);font-size:11px;letter-spacing:0.3px}
+.version-badge .dot{width:6px;height:6px;border-radius:50%;background-color:rgba(255,255,255,0.7);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:0.4;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+.hero-section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative;padding-top:70px;padding-bottom:70px}
+.section-title{font-size:2.2rem;font-weight:800;letter-spacing:-0.02em}
+@media(min-width:640px){.section-title{font-size:2.8rem}}@media(min-width:768px){.section-title{font-size:3.2rem}}@media(min-width:1024px){.section-title{font-size:3.8rem}}@media(min-width:1280px){.section-title{font-size:4.2rem}}
+.hero-title{font-size:2.5rem;line-height:1.15;font-weight:900;letter-spacing:-0.025em;color:white}
+@media(min-width:640px){.hero-title{font-size:3.5rem}}@media(min-width:768px){.hero-title{font-size:4rem}}@media(min-width:1024px){.hero-title{font-size:4.5rem}}@media(min-width:1280px){.hero-title{font-size:5rem}}
+.section-padding{padding-top:3rem;padding-bottom:3rem}
+@media(min-width:768px){.section-padding{padding-top:5rem;padding-bottom:5rem}}
+.scroll-indicator{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;z-index:20;transition:opacity 0.3s ease;opacity:0.6}.scroll-indicator:hover{opacity:1}
+.scroll-arrow-svg{width:22px;height:22px;stroke:rgba(255,255,255,0.7);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none;animation:bounceArrow 2s ease-in-out infinite}
+@keyframes bounceArrow{0%,100%{transform:translateY(0);opacity:0.5}50%{transform:translateY(5px);opacity:1}}
+.scroll-text{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.45);font-weight:400}
+.youtube-icon{width:22px;height:22px;transition:all 0.3s ease}
+/* ── AUTH MODAL ── */
+.auth-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);z-index:999;align-items:center;justify-content:center}
+.auth-modal-bg.show{display:flex}
+.auth-modal{background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;width:100%;max-width:400px;position:relative}
+.auth-tab-btn{flex:1;padding:10px;border:none;background:transparent;color:rgba(255,255,255,0.4);cursor:pointer;font-size:0.875rem;font-weight:600;border-radius:8px;transition:all .2s}
+.auth-tab-btn.active{background:rgba(255,255,255,0.1);color:#fff}
+.auth-input{width:100%;padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-size:0.875rem;outline:none;transition:border .2s;font-family:'Inter',sans-serif}
+.auth-input:focus{border-color:rgba(255,255,255,0.3)}
+.auth-input::placeholder{color:rgba(255,255,255,0.25)}
+/* ── USER BADGE ── */
+.user-nav-badge{display:none;align-items:center;gap:10px}
+.role-badge-admin{background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.3);color:#ffd700;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.role-badge-user{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+/* dashboard banner */
+.dashboard-banner{display:none;max-width:7xl;margin:0 auto;padding:0 1.25rem}
+</style>
 </head>
 <body class="grid-bg noise-overlay">
 
-    <!-- Navigation -->
-    <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-            <a href="#" class="flex items-center gap-2 sm:gap-3 group">
-                <div class="relative">
-                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center overflow-hidden bg-transparent">
-                        <img src="icon.ico" alt="VorvovX Client Icon" class="logo-img w-full h-full object-contain">
-                    </div>
-                    <div class="absolute inset-0 w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg blur-md group-hover:bg-white/20 transition-all opacity-50"></div>
-                </div>
-                <span class="text-lg sm:text-xl font-bold tracking-tight text-white vorvovx client-original">VorvovX Client</span>
-            </a>
-            <div class="hidden md:flex items-center gap-1">
-                <a href="#hero" class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Главная</a>
-                <a href="#advantages" class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Документация</a>
-                <a href="#download" class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Скачать</a>
-                <a href="#video" class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Видео</a>
-                <a href="#contacts" class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Контакты</a>
-            </div>
-            <div class="flex items-center gap-2 sm:gap-3">
-                <a href="#download" class="hidden md:inline-flex btn-shine items-center gap-2 bg-white text-black px-4 lg:px-5 py-2 lg:py-2.5 rounded-lg text-sm font-semibold hover:bg-white/90 transition-colors">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    Скачать
-                </a>
-                <button id="menuBtn" class="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors">
-                    <i data-lucide="menu" class="w-5 h-5 sm:w-6 sm:h-6"></i>
-                </button>
-            </div>
-        </div>
-    </nav>
+<!-- ════════════════════════════════ NAV ══════════════════════════════════ -->
+<nav class="nav-glass fixed top-0 left-0 right-0 z-50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+  <a href="#" class="flex items-center gap-2 sm:gap-3 group">
+    <div class="relative">
+      <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center overflow-hidden bg-transparent">
+        <img src="icon.ico" alt="VorvovX" class="logo-img w-full h-full object-contain">
+      </div>
+      <div class="absolute inset-0 w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg blur-md group-hover:bg-white/20 transition-all opacity-50"></div>
+    </div>
+    <span class="text-lg sm:text-xl font-bold tracking-tight text-white">VorvovX Client</span>
+  </a>
 
-    <div id="mobileMenu" class="mobile-menu fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-5 sm:gap-6">
-        <button id="closeMenu" class="absolute top-5 right-5 sm:top-6 sm:right-6 p-2 rounded-lg hover:bg-white/10 transition-colors">
-            <i data-lucide="x" class="w-6 h-6"></i>
-        </button>
-        <a href="#hero" class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Главная</a>
-        <a href="#advantages" class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Документация</a>
-        <a href="#download" class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Скачать</a>
-        <a href="#video" class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Видео</a>
-        <a href="#contacts" class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Контакты</a>
+  <div class="hidden md:flex items-center gap-1">
+    <a href="#hero"       class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Главная</a>
+    <a href="#advantages" class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Документация</a>
+    <a href="#download"   class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Скачать</a>
+    <a href="#video"      class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Видео</a>
+    <a href="#contacts"   class="px-3 lg:px-4 py-2 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/5">Контакты</a>
+  </div>
+
+  <div class="flex items-center gap-2 sm:gap-3">
+    <!-- Кнопки до логіну -->
+    <div id="nav-auth-btns" class="hidden md:flex items-center gap-2">
+      <button onclick="openAuth('login')"    class="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white border border-white/10 hover:border-white/20 transition-all">Войти</button>
+      <button onclick="openAuth('register')" class="btn-shine flex items-center gap-1.5 bg-white text-black px-4 py-2 rounded-lg text-sm font-bold hover:bg-white/90 transition-all">Регистрация</button>
+    </div>
+    <!-- Після логіну -->
+    <div id="nav-user-info" class="user-nav-badge">
+      <span id="nav-nick" class="text-sm font-semibold text-white"></span>
+      <span id="nav-role-badge"></span>
+      <button onclick="doLogout()" class="text-xs text-white/30 hover:text-white/70 transition-colors ml-1">Выйти</button>
+    </div>
+    <button id="menuBtn" class="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors">
+      <i data-lucide="menu" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+    </button>
+  </div>
+</div>
+</nav>
+
+<!-- Mobile menu -->
+<div id="mobileMenu" class="mobile-menu fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-5 sm:gap-6">
+  <button id="closeMenu" class="absolute top-5 right-5 p-2 rounded-lg hover:bg-white/10 transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+  <a href="#hero"       class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Главная</a>
+  <a href="#advantages" class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Документация</a>
+  <a href="#download"   class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Скачать</a>
+  <a href="#video"      class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Видео</a>
+  <a href="#contacts"   class="mobile-link text-xl sm:text-2xl font-semibold text-white/70 hover:text-white transition-colors">Контакты</a>
+  <div class="flex gap-3 mt-2">
+    <button onclick="openAuth('login');closeMenuFn()"    class="px-5 py-2.5 rounded-xl text-sm font-medium text-white/60 border border-white/10">Войти</button>
+    <button onclick="openAuth('register');closeMenuFn()" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-black">Регистрация</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ DASHBOARD BANNER (після логіну) ════════════════ -->
+<div id="dashboard-banner" style="display:none;padding-top:68px">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+    <div class="gradient-border rounded-2xl bg-[#0a0a0a] px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-white/[0.06] flex items-center justify-center text-xl font-bold" id="db-avatar">?</div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-bold text-white text-base" id="db-nick"></span>
+            <span id="db-role-badge"></span>
+          </div>
+          <div class="text-xs text-white/30 mt-0.5">Подписка до: <span id="db-sub" class="text-white/60"></span></div>
+        </div>
+      </div>
+      <div id="db-admin-link" style="display:none">
+        <a href="admin.php" class="btn-shine flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/90 transition-all">
+          <i data-lucide="settings-2" class="w-3.5 h-3.5"></i>Панель Администратора
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ AUTH MODAL ══════════════════════════════ -->
+<div id="auth-modal-bg" class="auth-modal-bg" onclick="closeAuthBg(event)">
+  <div class="auth-modal">
+    <button onclick="closeAuth()" class="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <h2 class="text-lg font-bold text-center mb-5" id="auth-title">Аккаунт</h2>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 bg-white/[0.04] rounded-xl p-1 mb-6">
+      <button class="auth-tab-btn" id="tab-login"    onclick="switchAuthTab('login')">Войти</button>
+      <button class="auth-tab-btn" id="tab-register" onclick="switchAuthTab('register')">Регистрация</button>
     </div>
 
-    <!-- Hero Section -->
-    <section id="hero" class="relative hero-section">
-        <div class="absolute top-1/4 left-5 w-48 h-48 sm:w-72 sm:h-72 bg-white/[0.02] rounded-full blur-3xl"></div>
-        <div class="absolute bottom-1/4 right-5 w-64 h-64 sm:w-96 sm:h-96 bg-white/[0.015] rounded-full blur-3xl"></div>
+    <!-- Login -->
+    <form id="form-login" onsubmit="doLogin(event)">
+      <div class="mb-3"><label class="block text-xs text-white/40 mb-1.5">Логин</label>
+        <input class="auth-input" id="l-login" placeholder="Ваш логин" required></div>
+      <div class="mb-4"><label class="block text-xs text-white/40 mb-1.5">Пароль</label>
+        <input class="auth-input" id="l-pass" type="password" placeholder="Пароль" required></div>
+      <button type="submit" class="w-full btn-shine bg-white text-black py-2.5 rounded-xl text-sm font-bold hover:bg-white/90 transition-all">Войти</button>
+      <p class="text-red-400 text-xs text-center mt-2 min-h-[16px]" id="l-err"></p>
+    </form>
 
-        <div class="max-w-7xl mx-auto px-5 sm:px-6 w-full">
-            <div class="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
-                <!-- Левая колонка -->
-                <div class="hero-left-col text-center lg:text-left fade-up">
-                    <div class="mb-4 sm:mb-6">
-                        <div class="version-badge">
-                            <span class="dot"></span>
-                            <span>Версия 2.0 — Уже доступна</span>
-                        </div>
-                    </div>
-                    <h1 class="hero-title vorvovx client-original">
-                        VorvovX Client
-                    </h1>
-                    <p class="text-sm sm:text-base lg:text-lg text-white/40 max-w-md mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed">
-                        Самый лучший визуальный и функциональный клиент в сфере Minecraft. Непревзойдённое качество и производительность.
-                    </p>
-                    <div class="flex flex-col xs:flex-row items-center gap-3 sm:gap-4 justify-center lg:justify-start">
-                        <a href="#download" class="btn-shine flex items-center gap-2 bg-white text-black px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold hover:bg-white/90 transition-all w-full xs:w-auto justify-center">
-                            <i data-lucide="download" class="w-4 h-4"></i>
-                            Скачать бесплатно
-                        </a>
-                        <a href="#video" class="flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-medium text-white/60 hover:text-white border border-white/10 hover:border-white/20 transition-all w-full xs:w-auto justify-center">
-                            <i data-lucide="play" class="w-4 h-4"></i>
-                            Смотреть обзор
-                        </a>
-                    </div>
-                    <div class="flex items-center gap-6 sm:gap-8 mt-8 sm:mt-10 justify-center lg:justify-start">
-                        <div>
-                            <div class="text-xl sm:text-2xl font-bold tracking-tight">99.9%</div>
-                            <div class="text-[10px] sm:text-xs text-white/30 mt-0.5">Uptime</div>
-                        </div>
-                        <div class="w-px h-6 sm:h-8 bg-white/10"></div>
-                        <div>
-                            <div class="text-xl sm:text-2xl font-bold tracking-tight">4.9★</div>
-                            <div class="text-[10px] sm:text-xs text-white/30 mt-0.5">Рейтинг</div>
-                        </div>
-                    </div>
-                </div>
+    <!-- Register -->
+    <form id="form-register" style="display:none" onsubmit="doRegister(event)">
+      <div class="mb-3"><label class="block text-xs text-white/40 mb-1.5">Логин</label>
+        <input class="auth-input" id="r-login" placeholder="Придумайте логин" required></div>
+      <div class="mb-3"><label class="block text-xs text-white/40 mb-1.5">Email</label>
+        <input class="auth-input" id="r-email" type="email" placeholder="your@email.com" required></div>
+      <div class="mb-3"><label class="block text-xs text-white/40 mb-1.5">Пароль</label>
+        <input class="auth-input" id="r-pass" type="password" placeholder="Минимум 6 символов" required></div>
+      <div class="mb-4"><label class="block text-xs text-white/40 mb-1.5">Ключ активации</label>
+        <input class="auth-input" id="r-key" placeholder="XXXX-XXXX-XXXX-XXXX" required></div>
+      <button type="submit" class="w-full btn-shine bg-white text-black py-2.5 rounded-xl text-sm font-bold hover:bg-white/90 transition-all">Зарегистрироваться</button>
+      <p class="text-red-400 text-xs text-center mt-2 min-h-[16px]" id="r-err"></p>
+      <p class="text-green-400 text-xs text-center min-h-[16px]" id="r-ok"></p>
+    </form>
+  </div>
+</div>
 
-                <!-- Правая колонка - картинка -->
-                <div class="flex-1 flex justify-center lg:justify-end fade-up">
-                    <div class="relative float-anim">
-                        <div class="relative w-[280px] xs:w-[340px] sm:w-[420px] lg:w-[560px] aspect-[4/3] flex items-center justify-center hero-icon-container">
-                            <img src="icon.ico" alt="VorvovX Client Icon" class="w-40 h-40 xs:w-52 xs:h-52 sm:w-72 sm:h-72 lg:w-96 lg:h-96 object-contain transition-all duration-500 hover:scale-105 drop-shadow-2xl">
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- ══════════════════════════════ HERO ═══════════════════════════════════ -->
+<section id="hero" class="relative hero-section">
+  <div class="absolute top-1/4 left-5 w-48 h-48 sm:w-72 sm:h-72 bg-white/[0.02] rounded-full blur-3xl"></div>
+  <div class="absolute bottom-1/4 right-5 w-64 h-64 sm:w-96 sm:h-96 bg-white/[0.015] rounded-full blur-3xl"></div>
+  <div class="max-w-7xl mx-auto px-5 sm:px-6 w-full">
+    <div class="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+      <div class="w-full max-w-full lg:max-w-[560px] text-center lg:text-left fade-up">
+        <div class="mb-4 sm:mb-6">
+          <div class="version-badge"><span class="dot"></span><span>Версия 2.0 — Уже доступна</span></div>
         </div>
-
-        <!-- Простая стрелка прокрутки -->
-        <div class="scroll-indicator" id="scrollIndicator">
-            <span class="scroll-text">Прокрутите вниз</span>
-            <svg class="scroll-arrow-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 5 L12 19" />
-                <path d="M7 14 L12 19 L17 14" />
-            </svg>
+        <h1 class="hero-title">VorvovX Client</h1>
+        <p class="text-sm sm:text-base lg:text-lg text-white/40 max-w-md mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed">Самый лучший визуальный и функциональный клиент в сфере Minecraft. Непревзойдённое качество и производительность.</p>
+        <div class="flex flex-col xs:flex-row items-center gap-3 sm:gap-4 justify-center lg:justify-start">
+          <a href="#download" class="btn-shine flex items-center gap-2 bg-white text-black px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold hover:bg-white/90 transition-all w-full xs:w-auto justify-center"><i data-lucide="download" class="w-4 h-4"></i>Скачать бесплатно</a>
+          <a href="#video"    class="flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-medium text-white/60 hover:text-white border border-white/10 hover:border-white/20 transition-all w-full xs:w-auto justify-center"><i data-lucide="play" class="w-4 h-4"></i>Смотреть обзор</a>
         </div>
-    </section>
-
-    <!-- Section Divider -->
-    <div class="section-divider max-w-5xl mx-auto my-10 sm:my-16"></div>
-
-    <!-- Advantages Section -->
-    <section id="advantages" class="relative section-padding">
-        <div class="max-w-7xl mx-auto px-5 sm:px-6">
-            <div class="text-center mb-10 sm:mb-14 fade-up">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[10px] sm:text-xs text-white/40 mb-4">
-                    <i data-lucide="zap" class="w-3 h-3"></i>
-                    Преимущества
-                </div>
-                <h2 class="section-title glow-text">
-                    Почему VorvovX Client?
-                </h2>
-                <p class="text-sm sm:text-base text-white/30 max-w-lg mx-auto mt-3">
-                    Мы предлагаем лучшие решения для каждого игрока
-                </p>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 stagger-children">
-                <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up">
-                    <div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5">
-                        <i data-lucide="eye" class="w-5 h-5 text-white/70"></i>
-                    </div>
-                    <h3 class="text-base sm:text-lg font-semibold mb-2">Визуал</h3>
-                    <p class="text-xs sm:text-sm text-white/30 leading-relaxed">Уникальные шейдеры и эффекты, которые выделяют вас среди остальных</p>
-                </div>
-                <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up">
-                    <div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5">
-                        <i data-lucide="gauge" class="w-5 h-5 text-white/70"></i>
-                    </div>
-                    <h3 class="text-base sm:text-lg font-semibold mb-2">Производительность</h3>
-                    <p class="text-xs sm:text-sm text-white/30 leading-relaxed">Оптимизированный код обеспечивает стабильные 240+ FPS на любом устройстве</p>
-                </div>
-                <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up">
-                    <div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5">
-                        <i data-lucide="shield-check" class="w-5 h-5 text-white/70"></i>
-                    </div>
-                    <h3 class="text-base sm:text-lg font-semibold mb-2">Безопасность</h3>
-                    <p class="text-xs sm:text-sm text-white/30 leading-relaxed">Надёжная защита от банов и детектов на всех популярных серверах</p>
-                </div>
-                <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up">
-                    <div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5">
-                        <i data-lucide="settings-2" class="w-5 h-5 text-white/70"></i>
-                    </div>
-                    <h3 class="text-base sm:text-lg font-semibold mb-2">Кастомизация</h3>
-                    <p class="text-xs sm:text-sm text-white/30 leading-relaxed">Полная настройка каждого модуля под ваш стиль игры</p>
-                </div>
-                <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up">
-                    <div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5">
-                        <i data-lucide="refresh-cw" class="w-5 h-5 text-white/70"></i>
-                    </div>
-                    <h3 class="text-base sm:text-lg font-semibold mb-2">Обновления</h3>
-                    <p class="text-xs sm:text-sm text-white/30 leading-relaxed">Еженедельные обновления с новыми модулями и улучшениями</p>
-                </div>
-                <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up">
-                    <div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5">
-                        <i data-lucide="headphones" class="w-5 h-5 text-white/70"></i>
-                    </div>
-                    <h3 class="text-base sm:text-lg font-semibold mb-2">Поддержка</h3>
-                    <p class="text-xs sm:text-sm text-white/30 leading-relaxed">Круглосуточная техподдержка в Discord и Telegram</p>
-                </div>
-            </div>
+        <div class="flex items-center gap-6 sm:gap-8 mt-8 sm:mt-10 justify-center lg:justify-start">
+          <div><div class="text-xl sm:text-2xl font-bold tracking-tight">99.9%</div><div class="text-[10px] sm:text-xs text-white/30 mt-0.5">Uptime</div></div>
+          <div class="w-px h-6 sm:h-8 bg-white/10"></div>
+          <div><div class="text-xl sm:text-2xl font-bold tracking-tight">4.9★</div><div class="text-[10px] sm:text-xs text-white/30 mt-0.5">Рейтинг</div></div>
         </div>
-    </section>
-
-    <!-- Section Divider -->
-    <div class="section-divider max-w-5xl mx-auto my-8 sm:my-10"></div>
-
-    <!-- Video Section -->
-    <section id="video" class="relative section-padding">
-        <div class="max-w-5xl mx-auto px-5 sm:px-6">
-            <div class="text-center mb-10 sm:mb-12 fade-up">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[10px] sm:text-xs text-white/40 mb-4">
-                    <i data-lucide="play-circle" class="w-3 h-3"></i>
-                    Обзор
-                </div>
-                <h2 class="section-title glow-text">
-                    Смотрите в действии
-                </h2>
-                <p class="text-sm sm:text-base text-white/30 max-w-lg mx-auto mt-3">
-                    Посмотрите, как работает VorvovX Client на практике
-                </p>
-            </div>
-            <div class="fade-up">
-                <div class="video-wrapper bg-[#0a0a0a]">
-                    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="VorvovX Client Review" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="rounded-xl"></iframe>
-                </div>
-            </div>
+      </div>
+      <div class="flex-1 flex justify-center lg:justify-end fade-up">
+        <div class="relative float-anim">
+          <div class="relative w-[280px] xs:w-[340px] sm:w-[420px] lg:w-[560px] aspect-[4/3] flex items-center justify-center">
+            <img src="icon.ico" alt="VorvovX Client" class="w-40 h-40 xs:w-52 xs:h-52 sm:w-72 sm:h-72 lg:w-96 lg:h-96 object-contain transition-all duration-500 hover:scale-105 drop-shadow-2xl">
+          </div>
         </div>
-    </section>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-indicator" id="scrollIndicator">
+    <span class="scroll-text">Прокрутите вниз</span>
+    <svg class="scroll-arrow-svg" viewBox="0 0 24 24"><path d="M12 5 L12 19"/><path d="M7 14 L12 19 L17 14"/></svg>
+  </div>
+</section>
 
-    <!-- Section Divider -->
-    <div class="section-divider max-w-5xl mx-auto my-8 sm:my-10"></div>
+<div class="section-divider max-w-5xl mx-auto my-10 sm:my-16"></div>
 
-    <!-- Download Section -->
-    <section id="download" class="relative section-padding">
-        <div class="max-w-5xl mx-auto px-5 sm:px-6">
-            <div class="fade-up">
-                <div class="gradient-border rounded-2xl sm:rounded-3xl bg-[#0a0a0a] p-6 sm:p-10 lg:p-16 text-center relative overflow-hidden dot-pattern">
-                    <div class="absolute top-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-white/[0.02] rounded-br-[100px]"></div>
-                    <div class="absolute bottom-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white/[0.02] rounded-tl-[100px]"></div>
-                    <div class="relative z-10">
-                        <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/[0.05] mb-5 sm:mb-6 overflow-hidden">
-                            <img src="icon.ico" alt="icon" class="w-8 h-8 sm:w-10 sm:h-10 object-contain">
-                        </div>
-                        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-3 sm:mb-4 glow-text">
-                            Скачать VorvovX Client
-                        </h2>
-                        <p class="text-sm sm:text-base text-white/30 max-w-md mx-auto mb-6 sm:mb-8">
-                            Получите доступ ко всем функциям прямо сейчас. Бесплатно и без рекламы.
-                        </p>
-                        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-                            <a href="#" class="btn-shine flex items-center gap-2 bg-white text-black px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-xs sm:text-sm font-bold hover:bg-white/90 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto justify-center">
-                                <i data-lucide="download" class="w-4 h-4"></i>
-                                Скачать для Windows
-                            </a>
-                        </div>
-                        <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-6 sm:mt-8 text-[10px] sm:text-xs text-white/20">
-                            <span class="flex items-center gap-1.5">
-                                <i data-lucide="shield-check" class="w-3 h-3"></i>
-                                Free Version
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <i data-lucide="hard-drive" class="w-3 h-3"></i>
-                                30MB
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <i data-lucide="clock" class="w-3 h-3"></i>
-                                Last Update: 29.05.2026
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- ════════════════════════ ADVANTAGES ══════════════════════════════════ -->
+<section id="advantages" class="relative section-padding">
+  <div class="max-w-7xl mx-auto px-5 sm:px-6">
+    <div class="text-center mb-10 sm:mb-14 fade-up">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[10px] sm:text-xs text-white/40 mb-4"><i data-lucide="zap" class="w-3 h-3"></i>Преимущества</div>
+      <h2 class="section-title glow-text">Почему VorvovX Client?</h2>
+      <p class="text-sm sm:text-base text-white/30 max-w-lg mx-auto mt-3">Мы предлагаем лучшие решения для каждого игрока</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 stagger-children">
+      <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up"><div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5"><i data-lucide="eye" class="w-5 h-5 text-white/70"></i></div><h3 class="text-base sm:text-lg font-semibold mb-2">Визуал</h3><p class="text-xs sm:text-sm text-white/30 leading-relaxed">Уникальные шейдеры и эффекты, которые выделяют вас среди остальных</p></div>
+      <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up"><div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5"><i data-lucide="gauge" class="w-5 h-5 text-white/70"></i></div><h3 class="text-base sm:text-lg font-semibold mb-2">Производительность</h3><p class="text-xs sm:text-sm text-white/30 leading-relaxed">Оптимизированный код обеспечивает стабильные 240+ FPS на любом устройстве</p></div>
+      <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up"><div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5"><i data-lucide="shield-check" class="w-5 h-5 text-white/70"></i></div><h3 class="text-base sm:text-lg font-semibold mb-2">Безопасность</h3><p class="text-xs sm:text-sm text-white/30 leading-relaxed">Надёжная защита от банов и детектов на всех популярных серверах</p></div>
+      <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up"><div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5"><i data-lucide="settings-2" class="w-5 h-5 text-white/70"></i></div><h3 class="text-base sm:text-lg font-semibold mb-2">Кастомизация</h3><p class="text-xs sm:text-sm text-white/30 leading-relaxed">Полная настройка каждого модуля под ваш стиль игры</p></div>
+      <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up"><div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5"><i data-lucide="refresh-cw" class="w-5 h-5 text-white/70"></i></div><h3 class="text-base sm:text-lg font-semibold mb-2">Обновления</h3><p class="text-xs sm:text-sm text-white/30 leading-relaxed">Еженедельные обновления с новыми модулями и улучшениями</p></div>
+      <div class="adv-card gradient-border p-5 sm:p-7 rounded-2xl bg-[#0a0a0a] fade-up"><div class="adv-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/[0.05] flex items-center justify-center mb-4 sm:mb-5"><i data-lucide="headphones" class="w-5 h-5 text-white/70"></i></div><h3 class="text-base sm:text-lg font-semibold mb-2">Поддержка</h3><p class="text-xs sm:text-sm text-white/30 leading-relaxed">Круглосуточная техподдержка в Discord и Telegram</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-5xl mx-auto my-8 sm:my-10"></div>
+
+<!-- ════════════════════════════ VIDEO ════════════════════════════════════ -->
+<section id="video" class="relative section-padding">
+  <div class="max-w-5xl mx-auto px-5 sm:px-6">
+    <div class="text-center mb-10 sm:mb-12 fade-up">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[10px] sm:text-xs text-white/40 mb-4"><i data-lucide="play-circle" class="w-3 h-3"></i>Обзор</div>
+      <h2 class="section-title glow-text">Смотрите в действии</h2>
+      <p class="text-sm sm:text-base text-white/30 max-w-lg mx-auto mt-3">Посмотрите, как работает VorvovX Client на практике</p>
+    </div>
+    <div class="fade-up">
+      <div class="video-wrapper bg-[#0a0a0a]">
+        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="VorvovX Client Review" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen class="rounded-xl"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-5xl mx-auto my-8 sm:my-10"></div>
+
+<!-- ════════════════════════════ DOWNLOAD ════════════════════════════════ -->
+<section id="download" class="relative section-padding">
+  <div class="max-w-5xl mx-auto px-5 sm:px-6">
+    <div class="fade-up">
+      <div class="gradient-border rounded-2xl sm:rounded-3xl bg-[#0a0a0a] p-6 sm:p-10 lg:p-16 text-center relative overflow-hidden dot-pattern">
+        <div class="absolute top-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-white/[0.02] rounded-br-[100px]"></div>
+        <div class="absolute bottom-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white/[0.02] rounded-tl-[100px]"></div>
+        <div class="relative z-10">
+          <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/[0.05] mb-5 sm:mb-6 overflow-hidden"><img src="icon.ico" alt="icon" class="w-8 h-8 sm:w-10 sm:h-10 object-contain"></div>
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-3 sm:mb-4 glow-text">Скачать VorvovX Client</h2>
+          <p class="text-sm sm:text-base text-white/30 max-w-md mx-auto mb-6 sm:mb-8">Получите доступ ко всем функциям прямо сейчас. Бесплатно и без рекламы.</p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <a href="#" class="btn-shine flex items-center gap-2 bg-white text-black px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-xs sm:text-sm font-bold hover:bg-white/90 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto justify-center"><i data-lucide="download" class="w-4 h-4"></i>Скачать для Windows</a>
+          </div>
+          <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-6 sm:mt-8 text-[10px] sm:text-xs text-white/20">
+            <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3 h-3"></i>Free Version</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="hard-drive" class="w-3 h-3"></i>30MB</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3 h-3"></i>Last Update: 29.05.2026</span>
+          </div>
         </div>
-    </section>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- Section Divider -->
-    <div class="section-divider max-w-5xl mx-auto my-8 sm:my-10"></div>
+<div class="section-divider max-w-5xl mx-auto my-8 sm:my-10"></div>
 
-    <!-- Contacts Section -->
-    <section id="contacts" class="relative section-padding">
-        <div class="max-w-7xl mx-auto px-5 sm:px-6">
-            <div class="text-center mb-10 sm:mb-12 fade-up">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[10px] sm:text-xs text-white/40 mb-4">
-                    <i data-lucide="mail" class="w-3 h-3"></i>
-                    Контакты
-                </div>
-                <h2 class="section-title glow-text">
-                    Свяжитесь с нами
-                </h2>
-                <p class="text-sm sm:text-base text-white/30 max-w-lg mx-auto mt-3">
-                    Есть вопросы? Мы всегда на связи
-                </p>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 stagger-children">
-                <a href="#" target="_blank" class="adv-card p-5 sm:p-6 rounded-2xl bg-[#0a0a0a] flex flex-col items-center text-center fade-up group">
-                    <div class="adv-icon w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3 sm:mb-4">
-                        <i data-lucide="message-circle" class="w-5 h-5 sm:w-6 sm:h-6 text-white/70 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <h3 class="font-semibold mb-1 text-sm sm:text-base">Discord</h3>
-                    <p class="text-[10px] sm:text-xs text-white/30">Присоединяйтесь к серверу</p>
-                </a>
-                <a href="#" target="_blank" class="adv-card p-5 sm:p-6 rounded-2xl bg-[#0a0a0a] flex flex-col items-center text-center fade-up group">
-                    <div class="adv-icon w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3 sm:mb-4">
-                        <i data-lucide="send" class="w-5 h-5 sm:w-6 sm:h-6 text-white/70 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <h3 class="font-semibold mb-1 text-sm sm:text-base">Telegram</h3>
-                    <p class="text-[10px] sm:text-xs text-white/30">Новости и поддержка</p>
-                </a>
-                <a href="#" target="_blank" class="adv-card p-5 sm:p-6 rounded-2xl bg-[#0a0a0a] flex flex-col items-center text-center fade-up group">
-                    <div class="adv-icon w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3 sm:mb-4">
-                        <svg class="youtube-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.376.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.376-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="currentColor"/>s
-                        </svg>
-                    </div>
-                    <h3 class="font-semibold mb-1 text-sm sm:text-base">YouTube</h3>
-                    <p class="text-[10px] sm:text-xs text-white/30">Обзоры и туториалы</p>
-                </a>
-                <a href="#" class="adv-card p-5 sm:p-6 rounded-2xl bg-[#0a0a0a] flex flex-col items-center text-center fade-up group">
-                    <div class="adv-icon w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3 sm:mb-4">
-                        <i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6 text-white/70 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <h3 class="font-semibold mb-1 text-sm sm:text-base">Email</h3>
-                    <p class="text-[10px] sm:text-xs text-white/30">Для деловых предложений</p>
-                </a>
-            </div>
-        </div>
-    </section>
+<!-- ════════════════════════════ CONTACTS ════════════════════════════════ -->
+<section id="contacts" class="relative section-padding">
+  <div class="max-w-7xl mx-auto px-5 sm:px-6">
+    <div class="text-center mb-10 sm:mb-12 fade-up">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.03] text-[10px] sm:text-xs text-white/40 mb-4"><i data-lucide="mail" class="w-3 h-3"></i>Контакты</div>
+      <h2 class="section-title glow-text">Свяжитесь с нами</h2>
+      <p class="text-sm sm:text-base text-white/30 max-w-lg mx-auto mt-3">Есть вопросы? Мы всегда на связи</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 stagger-children">
+      <a href="#" class="adv-card p-5 sm:p-6 rounded-2xl bg-[#0a0a0a] flex flex-col items-center text-center fade-up group"><div class="adv-icon w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3 sm:mb-4"><i data-lucide="message-circle" class="w-5 h-5 sm:w-6 sm:h-6 text-white/70 group-hover:text-white transition-colors"></i></div><h3 class="font-semibold mb-1 text-sm sm:text-base">Discord</h3><p class="text-[10px] sm:text-xs text-white/30">Присоединяйтесь к серверу</p></a>
+      <a href="#" class="adv-card p-5 sm:p-6 rounded-2xl bg-[#0a0a0a] flex flex-col items-center text-center fade-up group"><div class="adv-icon w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3 sm:mb-4"><i data-lucide="send" class="w-5 h-5 sm:w-6 sm:h-6 text-white/70 group-hover:text-white transition-colors"></i></div><h3 class="font-semibold mb-1 text-sm sm:text-base">Telegram</h3><p class="text-[10px] sm:text-xs text-white/30">Новости и поддержка</p></a>
+      <a href="#" class="adv-card p-5 sm:p-6 rounded-2xl bg-[#0a0a0a] flex flex-col items-center text-center fade-up group"><div class="adv-icon w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3 sm:mb-4"><svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 sm:w-6 sm:h-6 text-white/70 group-hover:text-white transition-colors"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.376.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.376-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></div><h3 class="font-semibold mb-1 text-sm sm:text-base">YouTube</h3><p class="text-[10px] sm:text-xs text-white/30">Обзоры и туториалы</p></a>
+      <a href="#" class="adv-card p-5 sm:p-6 rounded-2xl bg-[#0a0a0a] flex flex-col items-center text-center fade-up group"><div class="adv-icon w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3 sm:mb-4"><i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6 text-white/70 group-hover:text-white transition-colors"></i></div><h3 class="font-semibold mb-1 text-sm sm:text-base">Email</h3><p class="text-[10px] sm:text-xs text-white/30">Для деловых предложений</p></a>
+    </div>
+  </div>
+</section>
 
-    <!-- Footer -->
-    <footer class="border-t border-white/[0.05] mt-6 sm:mt-10">
-        <div class="max-w-7xl mx-auto px-5 sm:px-6 py-6 sm:py-10">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6">
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center overflow-hidden bg-transparent">
-                        <img src="icon.ico" alt="VorvovX Client Icon" class="footer-logo-img w-full h-full object-contain">
-                    </div>
-                    <span class="text-xs sm:text-sm font-semibold text-white vorvovx client-original">VorvovX Client</span>
-                </div>
-                <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-white/30">
-                    <a href="#hero" class="hover:text-white transition-colors">Главная</a>
-                    <a href="#advantages" class="hover:text-white transition-colors">Документация</a>
-                    <a href="#download" class="hover:text-white transition-colors">Скачать</a>
-                    <a href="#contacts" class="hover:text-white transition-colors">Контакты</a>
-                </div>
-                <p class="text-[10px] sm:text-xs text-white/20">
-                    © 2026 VorvovX Client. All rights reserved.
-                </p>
-            </div>
-        </div>
-    </footer>
+<!-- Footer -->
+<footer class="border-t border-white/[0.05] mt-6 sm:mt-10">
+  <div class="max-w-7xl mx-auto px-5 sm:px-6 py-6 sm:py-10">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center overflow-hidden bg-transparent"><img src="icon.ico" alt="VorvovX" class="footer-logo-img w-full h-full object-contain"></div>
+        <span class="text-xs sm:text-sm font-semibold text-white">VorvovX Client</span>
+      </div>
+      <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-white/30">
+        <a href="#hero" class="hover:text-white transition-colors">Главная</a>
+        <a href="#advantages" class="hover:text-white transition-colors">Документация</a>
+        <a href="#download" class="hover:text-white transition-colors">Скачать</a>
+        <a href="#contacts" class="hover:text-white transition-colors">Контакты</a>
+        <button onclick="openAuth('login')" class="hover:text-white transition-colors">Войти</button>
+      </div>
+      <p class="text-[10px] sm:text-xs text-white/20">© 2026 VorvovX Client. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
 
-    <script>
-        lucide.createIcons();
-        
-        // Mobile menu
-        const menuBtn = document.getElementById('menuBtn');
-        const closeMenuBtn = document.getElementById('closeMenu');
-        const mobileMenu = document.getElementById('mobileMenu');
-        const mobileLinks = document.querySelectorAll('.mobile-link');
-        
-        if(menuBtn) {
-            menuBtn.addEventListener('click', () => {
-                mobileMenu.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            });
-        }
-        
-        const closeMenu = () => {
-            mobileMenu.classList.remove('open');
-            document.body.style.overflow = '';
-        };
-        
-        if(closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
-        mobileLinks.forEach(link => link.addEventListener('click', closeMenu));
-        
-        // Scroll indicator click
-        const scrollIndicator = document.getElementById('scrollIndicator');
-        const advantagesSection = document.getElementById('advantages');
-        
-        if(scrollIndicator && advantagesSection) {
-            scrollIndicator.addEventListener('click', () => {
-                advantagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-        }
-        
-        // Fade-in animation
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-        
-        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-        
-        // Navbar background on scroll
-        const nav = document.querySelector('nav');
-        if(nav) {
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 50) {
-                    nav.style.borderBottomColor = 'rgba(255,255,255,0.08)';
-                } else {
-                    nav.style.borderBottomColor = 'rgba(255,255,255,0.05)';
-                }
-            });
-        }
-    </script>
+<script>
+lucide.createIcons();
+
+// ── Mobile menu ──────────────────────────────────────────────────────────────
+const menuBtn=document.getElementById('menuBtn');
+const mobileMenu=document.getElementById('mobileMenu');
+const closeMenuFn=()=>{mobileMenu.classList.remove('open');document.body.style.overflow='';};
+if(menuBtn)menuBtn.addEventListener('click',()=>{mobileMenu.classList.add('open');document.body.style.overflow='hidden';});
+document.getElementById('closeMenu').addEventListener('click',closeMenuFn);
+document.querySelectorAll('.mobile-link').forEach(l=>l.addEventListener('click',closeMenuFn));
+
+// ── Scroll indicator ─────────────────────────────────────────────────────────
+document.getElementById('scrollIndicator')?.addEventListener('click',()=>
+  document.getElementById('advantages')?.scrollIntoView({behavior:'smooth'}));
+
+// ── Fade-up ──────────────────────────────────────────────────────────────────
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
+document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
+
+// ── Nav scroll ───────────────────────────────────────────────────────────────
+const nav=document.querySelector('nav');
+if(nav)window.addEventListener('scroll',()=>nav.style.borderBottomColor=window.scrollY>50?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.05)');
+
+// ════════════════════════ AUTH LOGIC ════════════════════════════════════════
+
+const API = ''; // той самий домен
+
+function getUser(){const u=localStorage.getItem('vx_user');return u?JSON.parse(u):null;}
+function saveUser(u){localStorage.setItem('vx_user',JSON.stringify(u));}
+function clearUser(){localStorage.removeItem('vx_user');}
+
+// Init
+window.addEventListener('DOMContentLoaded',()=>{
+  lucide.createIcons();
+  const u=getUser();
+  if(u) showLoggedIn(u);
+  else showLoggedOut();
+});
+
+function showLoggedIn(u){
+  const isAdmin = (u.role||'').toLowerCase()==='admin';
+  // nav
+  document.getElementById('nav-auth-btns').style.display='none';
+  const ni=document.getElementById('nav-user-info');
+  ni.style.display='flex';
+  document.getElementById('nav-nick').textContent=u.login;
+  document.getElementById('nav-role-badge').innerHTML=isAdmin
+    ?'<span class="role-badge-admin">👑 Админ</span>'
+    :'<span class="role-badge-user">✅ Юзер</span>';
+
+  // dashboard banner
+  const db=document.getElementById('dashboard-banner');
+  db.style.display='block';
+  document.getElementById('db-nick').textContent=u.login;
+  document.getElementById('db-avatar').textContent=u.login.charAt(0).toUpperCase();
+  document.getElementById('db-role-badge').innerHTML=isAdmin
+    ?'<span class="role-badge-admin">👑 Администратор</span>'
+    :'<span class="role-badge-user">✅ Пользователь</span>';
+  const sub=new Date(u.subscription);
+  document.getElementById('db-sub').textContent=sub.toLocaleDateString('ru-RU',{year:'numeric',month:'long',day:'numeric'});
+  if(isAdmin) document.getElementById('db-admin-link').style.display='block';
+
+  // hero отступ
+  document.getElementById('hero').style.paddingTop='0';
+  lucide.createIcons();
+}
+
+function showLoggedOut(){
+  document.getElementById('nav-auth-btns').style.display='flex';
+  document.getElementById('nav-user-info').style.display='none';
+  document.getElementById('dashboard-banner').style.display='none';
+}
+
+function doLogout(){clearUser();showLoggedOut();}
+
+// Modal
+function openAuth(tab){
+  document.getElementById('auth-modal-bg').classList.add('show');
+  switchAuthTab(tab);
+}
+function closeAuth(){document.getElementById('auth-modal-bg').classList.remove('show');}
+function closeAuthBg(e){if(e.target===document.getElementById('auth-modal-bg'))closeAuth();}
+function switchAuthTab(tab){
+  document.getElementById('form-login').style.display    =tab==='login'?'':'none';
+  document.getElementById('form-register').style.display =tab==='register'?'':'none';
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('auth-title').textContent=tab==='login'?'Войти':'Регистрация';
+  document.getElementById('l-err').textContent='';
+  document.getElementById('r-err').textContent='';
+  document.getElementById('r-ok').textContent='';
+}
+
+async function doLogin(e){
+  e.preventDefault();
+  const btn=e.target.querySelector('button');
+  btn.disabled=true; btn.textContent='Входим...';
+  document.getElementById('l-err').textContent='';
+  try{
+    const res=await fetch(API+'loader.php',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({login:document.getElementById('l-login').value.trim(),pass:document.getElementById('l-pass').value})});
+    const d=await res.json();
+    if(d.success){saveUser(d.user);closeAuth();showLoggedIn(d.user);}
+    else document.getElementById('l-err').textContent=tr(d.message);
+  }catch{document.getElementById('l-err').textContent='Ошибка соединения';}
+  btn.disabled=false; btn.textContent='Войти';
+}
+
+async function doRegister(e){
+  e.preventDefault();
+  const btn=e.target.querySelector('button');
+  btn.disabled=true; btn.textContent='Регистрируем...';
+  document.getElementById('r-err').textContent='';
+  document.getElementById('r-ok').textContent='';
+  try{
+    const res=await fetch(API+'register.php',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({login:document.getElementById('r-login').value.trim(),email:document.getElementById('r-email').value.trim(),password:document.getElementById('r-pass').value,key:document.getElementById('r-key').value.trim()})});
+    const d=await res.json();
+    if(d.success){document.getElementById('r-ok').textContent='✅ Аккаунт создан! Теперь войдите.';setTimeout(()=>switchAuthTab('login'),1500);}
+    else document.getElementById('r-err').textContent=tr(d.message);
+  }catch{document.getElementById('r-err').textContent='Ошибка соединения';}
+  btn.disabled=false; btn.textContent='Зарегистрироваться';
+}
+
+function tr(m){
+  return({'Login already taken':'Логин уже занят','Email already registered':'Email уже зарегистрирован',
+    'Invalid or already used activation key':'Ключ недействителен или уже использован',
+    'Password must be at least 6 characters':'Пароль минимум 6 символов',
+    'Login must be 3-20 characters':'Логин от 3 до 20 символов',
+    'User not found':'Пользователь не найден','Invalid password':'Неверный пароль',
+    'Subscription expired':'Подписка истекла','Database connection failed':'Ошибка базы данных'}[m])||m;
+}
+</script>
 </body>
 </html>

@@ -347,7 +347,7 @@ if(nav)window.addEventListener('scroll',()=>nav.style.borderBottomColor=window.s
 
 // ════════════════════════ AUTH LOGIC ════════════════════════════════════════
 
-const API = ''; // той самий домен
+const API = 'http://vorvovx.site.je/';
 
 function getUser(){const u=localStorage.getItem('vx_user');return u?JSON.parse(u):null;}
 function saveUser(u){localStorage.setItem('vx_user',JSON.stringify(u));}
@@ -439,7 +439,7 @@ async function doRegister(e){
   try{
     const res=await fetch(API+'register.php',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({login:document.getElementById('r-login').value.trim(),email:document.getElementById('r-email').value.trim(),password:document.getElementById('r-pass').value,key:document.getElementById('r-key').value.trim()})});
-    const d=await res.json();
+    const d=await res.json();Й
     if(d.success){document.getElementById('r-ok').textContent='✅ Аккаунт создан! Теперь войдите.';setTimeout(()=>switchAuthTab('login'),1500);}
     else document.getElementById('r-err').textContent=tr(d.message);
   }catch{document.getElementById('r-err').textContent='Ошибка соединения';}

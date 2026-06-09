@@ -1,13 +1,1 @@
-services:
-  - type: web
-    name: vorvovx-api
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2
-    envVars:
-      - key: DATABASE_URL
-        value: postgresql://vorvov:s1lcGw7kOK09VzJ3WUiUer4K9gdEli6K@dpg-d8i7g258nd3s73e4uuig-a.oregon-postgres.render.com/vorvovx
-      - key: ADMIN_TOKEN
-        value: vorvovx_admin_2026
-      - key: JAR_PATH
-        value: client/VorvovX-2.0.jar
+какие же вы любопытные нахуй идите
